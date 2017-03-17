@@ -8,6 +8,9 @@ import random
 
 ## There are tests for each problem; you should also follow the instructions for things to do in the code that cannot be tested with unit tests, e.g. using certain structures.
 
+#Gillian Shields
+#Collaborated with Yuting and Tahmeed
+
 
 ## [PROBLEM 1]
 print("\n\n***** Problem 1 *****")
@@ -105,8 +108,9 @@ student_tups_list = list(student_tups)
 
 ## [PROBLEM 5]
 print("\n\n***** Problem 5 *****")
-# Use a list comprehension to create a list of Student instances out of the student_tups list you just created in Problem 2, and save that list in a variable called programmers. You should make sure you pass these tests before continuing, as you'll need this list for problems later on!
+# Use a list comprehension to create a list of Student instances out of the student_tups list you just created in Problem 4, and save that list in a variable called programmers. You should make sure you pass these tests before continuing, as you'll need this list for problems later on!
 programmers = [Student(x,y,z) for x,y,z in student_tups_list]
+
 
 
 ## [PROBLEM 6]
@@ -129,17 +133,17 @@ print("\n\n***** Problem 7 *****")
 
 ## But be careful that if you use answers from previous problems, you use the LISTs you generated, so that all your tests can still pass and you avoid confusion!
 
-names_and_productivities = list(zip(names, prod_list))
+names_and_productivities = [x for x in zip(names, prod_list)]
 
 
 ## [PROBLEM 8]
 print("\n\n***** Problem 8 *****")
 # Use the Python filter function to select the subset of programmers who have names with 5 or more characters. (i.e. ["Albert","Dinesh","Euijin"]) Your result should be an filter object that points to Student instances. Save that filter iterator in a variable called long_names.
-filter()
+long_names = filter((lambda Student: Student.name if len(Student.name) >= 5 else None), programmers)
 
 ## Then write code to cast the value of long_names to a list and save it in the variable long_names_list. 
-
-
+long_names_list = list(long_names)
+print(long_names_list)
 
 ## [PROBLEM 9]
 print("\n\n***** Problem 9 *****")
@@ -147,7 +151,7 @@ print("\n\n***** Problem 9 *****")
 # Use a list comprehension to generate a LIST of just the names of those Student instances whose name is longer than their seniority (i.e., ["Albert", "Mai", "Dinesh", "Euijin"]). Assign it to a variable called names_with_not_too_much_seniority.
 
 ## Note that you can use another list you have already created for this problem.
-
+names_with_not_too_much_seniority = [Student.name for Student in programmers if len(Student.name) >= Student.years_UM]
 
 
 
@@ -156,9 +160,23 @@ print("\n\n***** Problem 10 *****")
 
 ## Define a function called readfiles, which accepts a list of filenames as input and yields each line in each of the file with that name, assuming those files exist in the same directory as this program.
 
+def readfiles(filenames):
+    for f in filenames:
+        fileref = open(f,'r')
+        for line in fileref: 
+            yield line
+        fileref.close()
+
 ## Define a generator called len_check which accepts a generator of file lines and returns a generator object of all the lines it's accepted whose length is longer than 40 characters.
 
+def len_check(lines):
+    return (line for line in lines if len(line.split()) > 40)
+
 ## Finally, write a function called main_filterer that accepts a list of filenames (strings), and returns a generator of all the lines in those files that are longer than 40 characters. The function should invoke the other function and generator, readfiles and len_check.
+
+# def main_filterer(lst_filenames):
+#     readfiles()
+#     len_check()
 
 ## There is a test for this but an even more fun test is to uncomment the code below which invokes the main_filterer function and prints each line from the generator without blank lines in between (that's what the comma is doing).
 
