@@ -9,7 +9,7 @@ import twitter_info # still need this in the same directory, filled out
 
 ## Make sure to comment with:
 # Your name: Gillian Shields
-# The names of any people you worked with for this assignment:
+# The names of any people you worked with for this assignment: Yuting
 
 # ******** #
 ### Useful resources for this HW:
@@ -109,7 +109,6 @@ umsi_tweets = get_user_tweets("umsi")
 
 # (You should do nested data investigation on the umsi_tweets value to figure out how to pull out the data correctly!)
 
-print(umsi_tweets[0])
 
 
 tweet_id = []
@@ -148,17 +147,25 @@ conn.commit()
 
 # Select from the database all of the TIMES the tweets you collected were posted and fetch all the tuples that contain them in to the variable tweet_posted_times.
 
+result = 'SELECT time_posted FROM Tweets'
+cur.execute(result)
+tweet_posted_times = cur.fetchall()
+
 
 # Select all of the tweets (the full rows/tuples of information) that have been retweeted MORE than 2 times, and fetch them into the variable more_than_2_rts.
-
-
+result = 'SELECT retweets FROM Tweets WHERE retweets > 2'
+cur.execute(result)
+more_than_2_rts = cur.fetchall()
 
 # Select all of the TEXT values of the tweets that are retweets of another account (i.e. have "RT" at the beginning of the tweet text). Save the FIRST ONE from that group of text values in the variable first_rt. Note that first_rt should contain a single string value, not a tuple.
-
+result = 'SELECT tweet_text FROM Tweets WHERE instr(tweet_text, "RT")'
+cur.execute(result)
+tuple_rt = cur.fetchone()
+first_rt = str(tuple_rt)
 
 
 # Finally, done with database stuff for a bit: write a line of code to close the cursor to the database.
-
+cur.close()
 
 
 ## [PART 3] - Processing data
@@ -176,7 +183,14 @@ conn.commit()
 # If you want to challenge yourself here -- this function definition (what goes under the def statement) CAN be written in one line! Definitely, definitely fine to write it with multiple lines, too, which will be much easier and clearer.
 
 
-get_twitter_users(string):
+def get_twitter_users(str):
+	regex_phrase = r"\@[A-Za-z0-9]+\_*[A-Z-a-z0-9_]*"
+	x = re.findall(regex_phrase, str)
+	results = []
+	for user in x:
+		results.append(user[1:])
+
+	return set(results)
 
 
 
