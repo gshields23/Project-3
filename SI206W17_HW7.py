@@ -161,7 +161,7 @@ more_than_2_rts = cur.fetchall()
 result = 'SELECT tweet_text FROM Tweets WHERE instr(tweet_text, "RT")'
 cur.execute(result)
 tuple_rt = cur.fetchone()
-first_rt = str(tuple_rt)
+first_rt = tuple_rt[0]
 
 
 # Finally, done with database stuff for a bit: write a line of code to close the cursor to the database.
