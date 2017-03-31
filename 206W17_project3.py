@@ -13,6 +13,7 @@ import tweepy
 import twitter_info # same deal as always...
 import json
 import sqlite3
+import pdb
 
 ## Your name: Gillian Shields
 ## The names of anyone you worked with on this project: Sanika
@@ -82,7 +83,7 @@ umich_tweets = get_user_tweets("umich")
 # table Tweets, with columns:
 # - tweet_id (containing the string id belonging to the Tweet itself, from the data you got from Twitter) -- this column should be the PRIMARY KEY of this table
 # - text (containing the text of the Tweet)
-# - user_posted (an ID string, referencing the Users table, see below)
+# - user_id (an ID string, referencing the Users table, see below)
 # - time_posted (the time at which the tweet was created)
 # - retweets (containing the integer representing the number of times the tweet has been retweeted)
 
@@ -107,30 +108,33 @@ umich_tweets = get_user_tweets("umich")
 conn = sqlite3.connect('project3_tweets.db')
 cur = conn.cursor()
 
+cur.execute('DROP TABLE IF EXISTS Tweets')
 statement = 'CREATE TABLE IF NOT EXISTS '
-statement += 'Tweets (tweet_id INTEGER PRIMARY_KEY, text TEXT, time_posted TIMESTAMP, retweets INTEGER, user_posted TEXT NOT NULL, FOREIGN KEY (user_posted) REFERENCES Users(user_id) on UPDATE SET NULL)'
+statement += 'Tweets (tweet_id INTEGER PRIMARY KEY, text TEXT, time_posted TIMESTAMP, retweets INTEGER, user_id TEXT NOT NULL, FOREIGN KEY (user_id) REFERENCES Users(user_id) on UPDATE SET NULL)'
 cur.execute(statement)
 
+cur.execute('DROP TABLE IF EXISTS Users')
 table = 'CREATE TABLE IF NOT EXISTS '
-table += 'Users (user_id INTEGER PRIMARY_KEY, screen_name TEXT, num_favs INTEGER, description TEXT)'
+table += 'Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num_favs INTEGER, description TEXT)'
 cur.execute(table)
 
 #LOAD INTO TWEETS TABLE 
 tweets_tweetid = []
 tweets_text = []
-tweets_userposted = []
+tweets_userid = []
 tweets_time = []
 tweets_retweets = []
 
 for tweets in umich_tweets:
 	tweets_tweetid.append(tweets['id_str'])
 	tweets_text.append(tweets['text'])
-	tweets_userposted.append(tweets['user']['id_str'])
+	tweets_userid.append(tweets['user']['id_str'])
+	tweets_retweets.append(tweets['retweet_count'])
 	tweets_time.append(tweets['created_at'])
 
-tweets_list = zip(tweets_tweetid, tweets_text, tweets_userposted, tweets_time, tweets_retweets)
+tweets_list = list(zip(tweets_tweetid, tweets_text, tweets_time, tweets_retweets, tweets_userid))
 
-y = 'INSERT INTO Users VALUES (?,?,?,?,?)'
+y = 'INSERT OR IGNORE INTO Tweets VALUES (?,?,?,?,?)'
 
 for tweets in tweets_list:
 	cur.execute(y, tweets)
@@ -144,17 +148,24 @@ users_favs = []
 users_descrip = []
 
 for users in umich_tweets:
-	users_userid.append(users['user']['id_str'])
-	users_screenname.append(users['user']['screen_name'])
-	users_favs.append(users['user']['favourites_count'])
-	users_descrip.append(users['user']['description'])
+	# users_userid.append(users['user']['id_str'])
+	# users_screenname.append(users['user']['screen_name'])
+	# users_favs.append(users['user']['favourites_count'])
+	# users_descrip.append(users['user']['description'])
+	
+	for x in users['entities']['user_mentions']:
+		info = api.get_user(id = x['id_str'])
+		users_screenname.append(info['screen_name'])
+		users_userid.append(info['id_str'])
+		users_favs.append(info['favourites_count'])
+		users_descrip.append(info['description'])
 
+user_list = list(zip(users_userid, users_screenname, users_favs, users_descrip))
 
-user_list = zip(users_userid, users_screenname, users_favs, users_descrip)
-
-z = 'INSERT INTO Users VALUES (?,?,?,?)'
+#z = 'INSERT OR IGNORE INTO Users VALUES (?, ?, ?, ?)'
 
 for users in user_list:
+	z = 'INSERT OR IGNORE INTO Users VALUES (?, ?, ?, ?)'
 	cur.execute(z, users)
 
 conn.commit()
@@ -188,9 +199,9 @@ descriptions_fav_users = [element[0] for element in all_desc]
 
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 elements in each tuple: the user screenname and the text of the tweet -- for each tweet that has been retweeted more than 50 times. Save the resulting list of tuples in a variable called joined_result.
-# x = 'SELECT Users.screen_name, Tweets.text FROM Tweets INNER JOIN Users ON  WHERE Tweets.retweets > 50'
-# cur.execute(x)
-# joined_result = cur.fetchall()
+x = 'SELECT Users.screen_name, Tweets.text FROM Tweets INNER JOIN Users ON Tweets.user_id = Users.user_id WHERE Tweets.retweets > 50'
+cur.execute(x)
+joined_result = cur.fetchall()
 
 
 
