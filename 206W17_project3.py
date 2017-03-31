@@ -15,7 +15,7 @@ import json
 import sqlite3
 
 ## Your name: Gillian Shields
-## The names of anyone you worked with on this project:
+## The names of anyone you worked with on this project: Sanika
 
 #####
 
@@ -108,25 +108,48 @@ conn = sqlite3.connect('project3_tweets.db')
 cur = conn.cursor()
 
 statement = 'CREATE TABLE IF NOT EXISTS '
-statement += 'Tweets (tweet_id INTEGER PRIMARY_KEY, text TEXT, user_posted TEXT, time_posted TIMESTAMP, retweets INTEGER)'
+statement += 'Tweets (tweet_id INTEGER PRIMARY_KEY, text TEXT, time_posted TIMESTAMP, retweets INTEGER, user_posted TEXT NOT NULL, FOREIGN KEY (user_posted) REFERENCES Users(user_id) on UPDATE SET NULL)'
 cur.execute(statement)
 
 table = 'CREATE TABLE IF NOT EXISTS '
 table += 'Users (user_id INTEGER PRIMARY_KEY, screen_name TEXT, num_favs INTEGER, description TEXT)'
 cur.execute(table)
- 
-#LOAD INTO USERS TABLE: umich user + everything in timeline
+
+#LOAD INTO TWEETS TABLE 
+tweets_tweetid = []
+tweets_text = []
+tweets_userposted = []
+tweets_time = []
+tweets_retweets = []
+
+for tweets in umich_tweets:
+	tweets_tweetid.append(tweets['id_str'])
+	tweets_text.append(tweets['text'])
+	tweets_userposted.append(tweets['user']['id_str'])
+	tweets_time.append(tweets['created_at'])
+
+tweets_list = zip(tweets_tweetid, tweets_text, tweets_userposted, tweets_time, tweets_retweets)
+
+y = 'INSERT INTO Users VALUES (?,?,?,?,?)'
+
+for tweets in tweets_list:
+	cur.execute(y, tweets)
+
+conn.commit()
+
+#LOAD INTO USERS TABLE: umich users from umich timeline + everything
 users_userid = []
 users_screenname = []
 users_favs = []
 users_descrip = []
 
 for users in umich_tweets:
-	users_userid.append(users)
-	users_screenname(users)
-	users_favs.append(users)
-	users_descrip.append(users)
-	
+	users_userid.append(users['user']['id_str'])
+	users_screenname.append(users['user']['screen_name'])
+	users_favs.append(users['user']['favourites_count'])
+	users_descrip.append(users['user']['description'])
+
+
 user_list = zip(users_userid, users_screenname, users_favs, users_descrip)
 
 z = 'INSERT INTO Users VALUES (?,?,?,?)'
@@ -134,7 +157,7 @@ z = 'INSERT INTO Users VALUES (?,?,?,?)'
 for users in user_list:
 	cur.execute(z, users)
 
-
+conn.commit()
 
 ## Task 3 - Making queries, saving data, fetching data
 
@@ -146,18 +169,26 @@ cur.execute(x)
 users_info = cur.fetchall()
 
 # Make a query to select all of the user screen names from the database. Save a resulting list of strings (NOT tuples, the strings inside them!) in the variable screen_names. HINT: a list comprehension will make this easier to complete!
+x = 'SELECT screen_name FROM Users'
+cur.execute(x)
+all_screennames = cur.fetchall()
+screen_names = [element[0] for element in all_screennames]
 
 
 # Make a query to select all of the tweets (full rows of tweet information) that have been retweeted more than 25 times. Save the result (a list of tuples, or an empty list) in a variable called more_than_25_rts.
-
-
+x = 'SELECT * FROM Tweets WHERE retweets > 25'
+cur.execute(x)
+more_than_25_rts = cur.fetchall()
 
 # Make a query to select all the descriptions (descriptions only) of the users who have favorited more than 25 tweets. Access all those strings, and save them in a variable called descriptions_fav_users, which should ultimately be a list of strings.
-
+x = 'SELECT description FROM Users WHERE num_favs > 25'
+cur.execute(x)
+all_desc = cur.fetchall()
+descriptions_fav_users = [element[0] for element in all_desc]
 
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 elements in each tuple: the user screenname and the text of the tweet -- for each tweet that has been retweeted more than 50 times. Save the resulting list of tuples in a variable called joined_result.
-# x = 'SELECT screen_name, text FROM Tweets INNER JOIN Users WHERE retweets > 50'
+# x = 'SELECT Users.screen_name, Tweets.text FROM Tweets INNER JOIN Users ON  WHERE Tweets.retweets > 50'
 # cur.execute(x)
 # joined_result = cur.fetchall()
 
