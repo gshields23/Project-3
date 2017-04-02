@@ -16,7 +16,7 @@ import sqlite3
 import pdb
 
 ## Your name: Gillian Shields
-## The names of anyone you worked with on this project: Sanika
+## The names of anyone you worked with on this project: Sanika, Lauren, Yuting, Madi Atkins
 
 #####
 
@@ -184,7 +184,7 @@ x = 'SELECT screen_name FROM Users'
 cur.execute(x)
 all_screennames = cur.fetchall()
 screen_names = [element[0] for element in all_screennames]
-
+print(screen_names)
 
 # Make a query to select all of the tweets (full rows of tweet information) that have been retweeted more than 25 times. Save the result (a list of tuples, or an empty list) in a variable called more_than_25_rts.
 x = 'SELECT * FROM Tweets WHERE retweets > 25'
@@ -199,7 +199,7 @@ descriptions_fav_users = [element[0] for element in all_desc]
 
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 elements in each tuple: the user screenname and the text of the tweet -- for each tweet that has been retweeted more than 50 times. Save the resulting list of tuples in a variable called joined_result.
-x = 'SELECT Users.screen_name, Tweets.text FROM Tweets INNER JOIN Users ON Tweets.user_id = Users.user_id WHERE Tweets.retweets > 50'
+x = 'SELECT Users.screen_name, Tweets.text FROM Tweets INNER JOIN Users ON Tweets.user_id = Users.user_id WHERE Tweets.retweets > 15'
 cur.execute(x)
 joined_result = cur.fetchall()
 
@@ -208,17 +208,31 @@ joined_result = cur.fetchall()
 ## Task 4 - Manipulating data with comprehensions & libraries
 
 ## Use a set comprehension to get a set of all words (combinations of characters separated by whitespace) among the descriptions in the descriptions_fav_users list. Save the resulting set in a variable called description_words.
-
+description_words = set([word for line in descriptions_fav_users for word in line.split()])
 
 
 ## Use a Counter in the collections library to find the most common character among all of the descriptions in the descriptions_fav_users list. Save that most common character in a variable called most_common_char. Break any tie alphabetically (but using a Counter will do a lot of work for you...).
 
+most_common_char = collections.Counter(description_words).most_common(1)[0][0][0]
 
+#print(most_common_char)
 
 ## Putting it all together...
-# Write code to create a dictionary whose keys are Twitter screen names and whose associated values are lists of tweet texts that that user posted. You may need to make additional queries to your database! To do this, you can use, and must use at least one of: the DefaultDict container in the collections library, a dictionary comprehension, list comprehension(s). Y
+# Write code to create a dictionary whose keys are Twitter screen names and whose associated values are lists of tweet texts that that user posted. You may need to make additional queries to your database! To do this, you can use, and must use at least one of: the DefaultDict container in the collections library, a dictionary comprehension, list comprehension(s).
 # You should save the final dictionary in a variable called twitter_info_diction.
+x = [('SELECT text FROM Tweets INNER JOIN Users ON Tweets.user_id = Users.user_id') for name in screen_names]
+twitter_info_diction = {}
+for query in x:
+	cur.execute(query)
+	user_tweets = cur.fetchall()
+	user_tweets_list = [tweet[0] for tweet in user_tweets]
+	name = screen_names[x.index(query)]
+	dict = {name:user_tweets_list}
+	twitter_info_diction.update(dict)
 
+#print(twitter_info_diction)
+
+#key = screen_name    value = text
 
 
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END OF THE FILE HERE SO YOU DO NOT LOCK YOUR DATABASE (it's fixable, but it's a pain). ###
