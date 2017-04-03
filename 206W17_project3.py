@@ -168,7 +168,23 @@ for users in user_list:
 	z = 'INSERT OR IGNORE INTO Users VALUES (?, ?, ?, ?)'
 	cur.execute(z, users)
 
+
+for x in umich_tweets:
+	for u in x['entities']['user_mentions']:
+		unique_identifier = "user_{}".format(u['screen_name'])
+		if unique_identifier in CACHE_DICTION:
+			my_var = CACHE_DICTION[unique_identifier]
+		else:
+			my_var = api.get_user(u['screen_name'])
+			CACHE_DICTION[unique_identifier] = my_var
+			f=open(CACHE_FNAME, 'w')
+			f.write(json.dumps(CACHE_DICTION))
+			f.close()
+
+
 conn.commit()
+
+
 
 ## Task 3 - Making queries, saving data, fetching data
 
